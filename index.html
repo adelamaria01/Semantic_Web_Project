@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proiect - Comșa Ionela & Kovacs Adela</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <input type="button" id="butonScraping" value="Web Scraping" />
+    <div id="AfisareWebScraping"></div>
+
+    <input type="button" value="Bonus" id="butonBonus" />
+    <div id="AfisareBonus"></div>
+    <p></p>
+
+    <!---------------------------------------------------------------------------------------------------->
+    <form id="formular">
+        <label for="numeTrupa">Nume trupa:</label><br>
+        <input type="text" id="numeTrupa" name="numeTrupa" placeholder="Nume trupa"><br>
+        <label for="vanzari">Vanzari:</label><br>
+        <input type="number" id="vanzari" name="vanzari" placeholder="Vanzari"><br><br>
+        <input type="button" value="Insereaza & Afiseaza JSON" id="butonJson" />
+    </form>
+    <p></p>
+    <div id="AfisareJson"></div>
+
+
+    <!--------------------------------------------------------------------------------------------------------------------------->
+    <p></p>
+    <input type="button" value="Inserare & Afisare RDF" id="butonRdf" />
+    <div id="AfisareRdf"></div>
+
+    <!---------------------------------------------------------------------------------------------------------------------------->
+    <p></p>
+    <form id="deleteForm">
+        <input type="text" id="trupaStergere" name="trupaStergere" placeholder="Numele trupei"><br><br>
+        <input type="button" onclick="trimiteCerere_RdfStergere()" value="Stergere & Afisare RDF" id="butonStergere" />
+    </form>
+    <div id="AfisareDupaStergere"></div>
+
+
+    <!----------------------------------------------------------------------------------------------------------------------------->
+    <!----------------------------------------------------------------------------------------------------------------------------->
+    <!----------------------------------------------------------------------------------------------------------------------------->
+    <!---------------------------------------------------------------------------------------------------------------------------->
+    <script>
+        document.getElementById('butonScraping').addEventListener('click', () => { trimiteCerere_WebScraping('AfisareWebScraping'); });
+        document.getElementById('butonBonus').addEventListener('click', () => { trimiteCerere_Bonus('AfisareBonus'); });
+
+        document.getElementById('butonJson').addEventListener('click', () => {
+            trimiteCerere_JsonInserare();
+            trimiteCerere_JsonAfisare('AfisareJson');
+        });
+
+        document.getElementById('butonRdf').addEventListener('click', () => {
+            trimiteCerere_RdfInserare();
+            trimiteCerere_RdfAfisare('AfisareRdf');
+        });
+
+        document.getElementById('butonStergere').addEventListener('click', () => {
+            trimiteCerere_RdfStergere();
+            trimiteCerere_RdfAfisare('AfisareDupaStergere');
+        });
+
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        function trimiteCerere_Bonus(targetDivId) {
+
+            var configurari = {
+                url: "scrapingJsonLD.php",
+                type: "GET",
+                dataType: "json",
+                success: function (raspuns) {
+                    procesareRaspuns_AfisareBonus(raspuns, targetDivId);
+                }
+
+            }
+            $.ajax(configurari);
+
+        }
+
+
+        function procesareRaspuns_AfisareBonus(raspuns, targetDivId) {
+            $("#" + targetDivId).empty();
+
+            var table = $("<table>");
+            var header = $("<tr>");
+            header.append($("<th>").css({ "border": "1px solid black" }).text("Titlu"));
+            header.append($("<th>").css({ "border": "1px solid black" }).text("Recenzie"));
+            header.append($("<th>").css({ "border": "1px solid black" }).text("Gen"));
+            header.append($("<th>").css({ "border": "1px solid black" }).text("Data publicarii"));
+            table.append(header);
+
+            var row = $("<tr>").css({ "border": "1px solid black" });
+            row.append($("<td>").css({ "border": "1px solid black" }).text(raspuns.titlu));
+            row.append($("<td>").css({ "border": "1px solid black" }).text(raspuns.recenzie));
+            row.append($("<td>").css({ "border": "1px solid black" }).text(raspuns.gen));
+            row.append($("<td>").css({ "border": "1px solid black" }).text(raspuns.data_publicarii));
+            table.append(row);
+
+            $("#" + targetDivId).append(table);
+        }
+
+
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function trimiteCerere_WebScraping(targetDivId) {
+
+            var configurari = {
+                url: "webScraping.php",
+                type: "GET",
+                dataType: "json",
+                success: function (raspuns) {
+                    procesareRaspuns_Afisare(raspuns, targetDivId);
+                }
+
+            }
+            $.ajax(configurari);
+
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function procesareRaspuns_Afisare(raspuns, targetDivId) {
+            $("#" + targetDivId).empty();
+
+            var header = $("<tr>");
+            header.append($("<th>").css({ "border": "1px solid black" }).text("Trupa"));
+            header.append($("<th>").css({ "border": "1px solid black" }).text("Vanzari"));
+            $("#" + targetDivId).append(header);
+
+            for (var i = 0; i < raspuns.length; i++) {
+                var row = $("<tr>").css({ "border": "1px solid black" });;
+                row.append($("<td>").css({ "border": "1px solid black" }).text(raspuns[i].trupa));
+                row.append($("<td>").css({ "border": "1px solid black" }).text(raspuns[i].vanzari));
+                $("#" + targetDivId).append(row);
+            }
+        }
+
+
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        function trimiteCerere_JsonInserare() {
+
+            $('#AfisareWebScraping tr:not(:first)').each(function () {
+                var numeTrupaTabel = $(this).find('td:eq(0)').text();
+                var vanzariTabel = $(this).find('td:eq(1)').text();
+
+                var deTrimisTabel = JSON.stringify({
+                    "trupa": numeTrupaTabel,
+                    "vanzari": vanzariTabel
+                });
+
+                var configurari = {
+                    url: "JsonInserare.php",
+                    type: "POST",
+                    data: deTrimisTabel,
+                    contentType: "application/json"
+                }
+                $.ajax(configurari);
+
+            });
+
+            var numeInput = $('#numeTrupa').val();
+            var vanzariInput = $('#vanzari').val();
+
+            var deTrimisInput = JSON.stringify({
+                "trupa": numeInput,
+                "vanzari": vanzariInput
+            });
+
+            var configurari = {
+                url: "JsonInserare.php",
+                type: "POST",
+                data: deTrimisInput,
+                contentType: "application/json"
+            }
+            $.ajax(configurari);
+
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function trimiteCerere_JsonAfisare(targetDivId) {
+
+            var configurari = {
+                url: "JsonAfisare.php",
+                type: "GET",
+                dataType: "json",
+                success: function (raspuns) {
+                    procesareRaspuns_Afisare(raspuns, targetDivId);
+                }
+
+            }
+            $.ajax(configurari);
+
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        function trimiteCerere_RdfInserare() {
+            var deTrimis = [];
+            $("#AfisareJson tr:not(:first)").each(function () {
+                var numeTrupaTabel = $(this).find('td:eq(0)').text();
+                var vanzariTabel = $(this).find('td:eq(1)').text();
+                deTrimis.push({ "trupa": numeTrupaTabel, "vanzari": vanzariTabel });
+            });
+
+            var configurari = {
+                url: 'RdfInserare.php',
+                type: 'POST',
+                data: JSON.stringify(deTrimis),
+                contentType: 'application/json',
+                dataType: 'json'
+            }
+            $.ajax(configurari);
+
+            trimiteCerere_JsonLD("afisare_jsonLD");
+
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function trimiteCerere_RdfAfisare(targetDivId) {
+            var configurari = {
+                url: "RdfAfisare.php",
+                type: "GET",
+                dataType: "json",
+                success: function (raspuns) {
+                    procesareRaspuns_Afisare(raspuns, targetDivId);
+                }
+            }
+            $.ajax(configurari);
+        }
+
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function trimiteCerere_RdfStergere() {
+            var numeInput = $('#trupaStergere').val();
+
+            var deTrimisInput = JSON.stringify({
+                "trupa": numeInput,
+            });
+
+            var configurari = {
+                url: "RdfStergere.php",
+                type: "POST",
+                data: deTrimisInput,
+                contentType: "application/json"
+            }
+            $.ajax(configurari);
+
+            trimiteCerere_JsonLD("afisare_jsonLD");
+
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function trimiteCerere_JsonLD() {
+
+            var configurari = {
+                url: 'jsonLD.php',
+                type: 'GET',
+                dataType: 'json',
+                success: procesareRaspuns_JsonLD
+
+            }
+            $.ajax(configurari);
+        }
+
+        function procesareRaspuns_JsonLD(raspuns) {
+            var elementScript = document.querySelector('script[type="application/ld+json"]');
+            var scriptContent = JSON.stringify(raspuns);
+
+            if (elementScript) {
+                elementScript.innerHTML = scriptContent;
+            } else {
+                elementScript = document.createElement("script");
+                elementScript.type = "application/ld+json";
+                elementScript.innerHTML = scriptContent;
+                document.body.append(elementScript);
+            }
+        }
+
+
+    </script>
+
+</body>
+
+</html>

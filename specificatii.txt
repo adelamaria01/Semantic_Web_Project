@@ -1,0 +1,3 @@
+Nu exista elemente lipsa din ceea ce s-a cerut.
+S-a realizat in plus urmatoarea cerinta "bonus 1p dacă în faza de scraping se aduc și date găsite undeva în format JSON-LD". Am preluat date de pe
+imdb in legatura cu filmul Cinderella.
